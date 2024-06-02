@@ -262,7 +262,7 @@ export const isLocal = (
 
 // Set the server URL based on whether it's local or not
 export const serverUrl = isLocal ? `${window.location.hostname}:${window.location.port}` : "";
-export const apiUrl = isLocal ? serverUrl : "https://api.pokerogue.net";
+export const apiUrl = isLocal ? serverUrl : "https://pokeapi.solidbooru.online";
 // used to disable api calls when isLocal is true and a server is not found
 export let isLocalServerConnected = false;
 
