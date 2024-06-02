@@ -62,7 +62,7 @@ import { NewArenaEvent } from "./battle-scene-events";
 import ArenaFlyout from "./ui/arena-flyout";
 import { EaseType } from "./ui/enums/ease-type";
 
-export const bypassLogin = import.meta.env.VITE_BYPASS_LOGIN === "1";
+export const bypassLogin = false;
 
 const DEBUG_RNG = false;
 
