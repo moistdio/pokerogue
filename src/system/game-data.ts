@@ -471,16 +471,6 @@ export class GameData {
         }
 
         if (systemData.voucherCounts) {
-          // TODO: Remove
-          if (systemData.voucherUnlocks && !systemData.voucherCounts.hasOwnProperty(VoucherType.GOLDEN)) {
-            systemData.voucherCounts[VoucherType.GOLDEN] = 0;
-            for (let v of Object.keys(systemData.voucherUnlocks)) {
-              const voucherType = vouchers[v].voucherType;
-              if (voucherType > VoucherType.REGULAR)
-                systemData.voucherCounts[VoucherType.REGULAR] += voucherType === VoucherType.GOLDEN ? 15 : voucherType === VoucherType.PREMIUM ? 5 : 4;
-            }
-          }
-
           Utils.getEnumKeys(VoucherType).forEach(key => {
             const index = VoucherType[key];
             this.voucherCounts[index] = systemData.voucherCounts[index] || 0;
