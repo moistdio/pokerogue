@@ -60,7 +60,7 @@ import { MoneyFormat } from "./enums/money-format";
 import { NewArenaEvent } from "./battle-scene-events";
 import ArenaFlyout from "./ui/arena-flyout";
 
-export const bypassLogin = false;
+export const bypassLogin = import.meta.env.VITE_BYPASS_LOGIN === "1";
 
 const DEBUG_RNG = false;
 
