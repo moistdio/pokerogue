@@ -1,7 +1,10 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import dotenv from 'dotenv';
 // import fs from 'vite-plugin-fs';
+
+dotenv.config();
 
 export default defineConfig(({ mode }) => {
 	return {
