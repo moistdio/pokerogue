@@ -211,8 +211,8 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
           this.generateFusionSpecies();
         }
       }
-
       this.luck = (this.shiny ? this.variant + 1 : 0) + (this.fusionShiny ? this.fusionVariant + 1 : 0);
+      this.fusionLuck = this.luck;
     }
 
     this.generateName();
@@ -1252,11 +1252,12 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
     if (thresholdOverride === undefined) {
       if (!this.hasTrainer()) {
         const enableShinyEvent = import.meta.env.VITE_SHINY_EVENT_ON === "1";
-        const shinyEventYear = import.meta.env.VITE_SHINY_EVENT_YEAR
-        const shinyEventMonth = import.meta.env.VITE_SHINY_EVENT_MONTH
-        const shinyEventDay = import.meta.env.VITE_SHINY_EVENT_DAY
-        if (enableShinyEvent && new Date() < new Date(Date.UTC(shinyEventYear, shinyEventMonth, shinyEventDay, 0)))
+        const shinyEventYear = import.meta.env.VITE_SHINY_EVENT_YEAR;
+        const shinyEventMonth = import.meta.env.VITE_SHINY_EVENT_MONTH;
+        const shinyEventDay = import.meta.env.VITE_SHINY_EVENT_DAY;
+        if (enableShinyEvent && new Date() < new Date(Date.UTC(shinyEventYear, shinyEventMonth, shinyEventDay, 0))) {
           shinyThreshold.value *= 3;
+        }
         this.scene.applyModifiers(ShinyRateBoosterModifier, true, shinyThreshold);
       }
     } else {
