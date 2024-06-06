@@ -1264,7 +1264,7 @@ export class GameData {
                     if (!success) {
                       return displayError(`Could not contact the server. Your ${dataName} data could not be imported.`);
                     }
-                    Utils.apiPost(`savedata/update?datatype=${dataType}${dataType === GameDataType.SESSION ? `&slot=${slotId}` : ""}&trainerId=${this.trainerId}&secretId=${this.secretId}&clientSessionId=${clientSessionId}`, dataStr, undefined, true)
+                    Utils.apiPost(`savedata/update?datatype=${dataType}${dataType === GameDataType.SESSION ? `&slot=${slotId}` : ""}&trainerId=${this.trainerId}&secretId=${this.secretId}&clientSessionId=${clientSessionId}&isImport=1`, dataStr, undefined, true)
                       .then(response => response.text())
                       .then(error => {
                         if (error) {
