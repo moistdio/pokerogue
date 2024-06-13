@@ -721,6 +721,13 @@ export abstract class PokemonPhase extends FieldPhase {
     if (this.battlerIndex > BattlerIndex.ENEMY_2) {
       return this.scene.getPokemonById(this.battlerIndex);
     }
+
+    console.log("fields: ", this.scene.getField(), this.battlerIndex);
+
+    if (this.scene.getField()[2] === null) {
+      return this.scene.getField()[0];
+    }
+
     return this.scene.getField()[this.battlerIndex];
   }
 }
