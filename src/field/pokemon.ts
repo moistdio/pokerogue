@@ -1319,6 +1319,9 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
 
     const shinyThreshold = new Utils.IntegerHolder(32);
     if (thresholdOverride === undefined) {
+      if (this.scene.eventManager.isEventActive()) {
+        shinyThreshold.value *= this.scene.eventManager.getShinyMultiplier();
+      }
       if (!this.hasTrainer()) {
         const enableShinyEvent = import.meta.env.VITE_SHINY_EVENT_ON === "1";
         const shinyEventYear = import.meta.env.VITE_SHINY_EVENT_YEAR;
