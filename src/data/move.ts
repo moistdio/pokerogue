@@ -2,7 +2,7 @@ import { ChargeAnim, MoveChargeAnim, initMoveAnim, loadMoveAnimAssets } from "./
 import { BattleEndPhase, MovePhase, NewBattlePhase, PartyStatusCurePhase, PokemonHealPhase, StatChangePhase, SwitchSummonPhase } from "../phases";
 import { BattleStat, getBattleStatName } from "./battle-stat";
 import { EncoreTag } from "./battler-tags";
-import { getPokemonMessage } from "../messages";
+import { getPokemonMessage, getPokemonNameWithAffix } from "../messages";
 import Pokemon, { AttackMoveResult, EnemyPokemon, HitResult, MoveResult, PlayerPokemon, PokemonMove, TurnMove } from "../field/pokemon";
 import { StatusEffect, getStatusEffectHealText, isNonVolatileStatusEffect, getNonVolatileStatusEffects} from "./status-effect";
 import { Type } from "./type";
@@ -278,12 +278,14 @@ export default class Move implements Localizable {
   }
 
   /**
-   * Checks if the move is immune to certain types
-   * currently only look at case of Grass types and powder moves
-   * @param type {@linkcode Type} enum
+   * Checks if the move is immune to certain types.
+   * Currently looks at cases of Grass types with powder moves and Dark types with moves affected by Prankster.
+   * @param {Pokemon} user the source of this move
+   * @param {Pokemon} target the target of this move
+   * @param {Type} type the type of the move's target
    * @returns boolean
    */
-  isTypeImmune(type: Type): boolean {
+  isTypeImmune(user: Pokemon, target: Pokemon, type: Type): boolean {
     if (this.moveTarget === MoveTarget.USER) {
       return false;
     }
@@ -291,6 +293,11 @@ export default class Move implements Localizable {
     switch (type) {
     case Type.GRASS:
       if (this.hasFlag(MoveFlags.POWDER_MOVE)) {
+        return true;
+      }
+      break;
+    case Type.DARK:
+      if (user.hasAbility(Abilities.PRANKSTER) && this.category === MoveCategory.STATUS && (user.isPlayer() !== target.isPlayer())) {
         return true;
       }
       break;
@@ -3987,7 +3994,13 @@ export class CurseAttr extends MoveEffectAttr {
       }
       const curseRecoilDamage = Math.max(1, Math.floor(user.getMaxHp() / 2));
       user.damageAndUpdate(curseRecoilDamage, HitResult.OTHER, false, true, true);
-      user.scene.queueMessage(getPokemonMessage(user, ` cut its own HP\nand laid a curse on the ${target.name}!`));
+      user.scene.queueMessage(
+        i18next.t("battle:battlerTagsCursedOnAdd", {
+          pokemonNameWithAffix: getPokemonNameWithAffix(user),
+          pokemonName: target.name
+        })
+      );
+
       target.addTag(BattlerTagType.CURSED, 0, move.id, user.id);
       return true;
     } else {
@@ -4599,7 +4612,7 @@ export class RemoveTypeAttr extends MoveEffectAttr {
 
 export class CopyTypeAttr extends MoveEffectAttr {
   constructor() {
-    super(true);
+    super(false);
   }
 
   apply(user: Pokemon, target: Pokemon, move: Move, args: any[]): boolean {
@@ -8314,8 +8327,7 @@ export function initMoves() {
       .attr(HealStatusEffectAttr, false, StatusEffect.FREEZE)
       .attr(StatusEffectAttr, StatusEffect.BURN)
       .target(MoveTarget.ALL_NEAR_ENEMIES)
-      .triageMove()
-      .partial(),
+      .triageMove(),
     new AttackMove(Moves.SYRUP_BOMB, Type.GRASS, MoveCategory.SPECIAL, 60, 85, 10, -1, 0, 9)
       .attr(StatChangeAttr, BattleStat.SPD, -1) //Temporary
       .ballBombMove()
