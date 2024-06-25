@@ -140,18 +140,17 @@ export class Egg {
   constructor(eggOptions?: IEggOptions) {
     //if (eggOptions.tier && eggOptions.species) throw Error("Error egg can't have species and tier as option. only choose one of them.")
 
+    this._sourceType = eggOptions.sourceType ?? undefined;
+    // Ensure _sourceType is defined before invoking rollEggTier(), as it is referenced
     this._tier = eggOptions.tier ?? (Overrides.EGG_TIER_OVERRIDE ?? this.rollEggTier());
     // If egg was pulled, check if egg pity needs to override the egg tier
     if (eggOptions.pulled) {
+      // Needs this._tier and this._sourceType to work
       this.checkForPityTierOverrides(eggOptions.scene);
     }
 
     this._id = eggOptions.id ?? Utils.randInt(EGG_SEED, EGG_SEED * this._tier);
 
-    // Increase pull statistics AFTER the ID was generated beacuse it will be used to check for mahnaphy egg
-    if (eggOptions.pulled) {
-      this.increasePullStatistic(eggOptions.scene);
-    }
     this._sourceType = eggOptions.sourceType ?? undefined;
     this._hatchWaves = eggOptions.hatchWaves ?? this.getEggTierDefaultHatchWaves();
     this._timestamp = eggOptions.timestamp ?? new Date().getTime();
@@ -162,7 +161,6 @@ export class Egg {
     this._species = eggOptions.species ?? this.rollSpecies(eggOptions.scene);
 
     this._overrideHiddenAbility = eggOptions.overrideHiddenAbility ?? false;
-    this._eggMoveIndex = eggOptions.eggMoveIndex ?? this.rollEggMoveIndex();
 
     // Override egg tier and hatchwaves if species was given
     if (eggOptions.species) {
@@ -175,7 +173,10 @@ export class Egg {
         this._variantTier = VariantTier.COMMON;
       }
     }
+    // Needs this._tier so it needs to be generated afer the tier override if bought from same species
+    this._eggMoveIndex = eggOptions.eggMoveIndex ?? this.rollEggMoveIndex();
     if (eggOptions.pulled) {
+      this.increasePullStatistic(eggOptions.scene);
       this.addEggToGameData(eggOptions.scene);
     }
   }
@@ -371,7 +372,7 @@ export class Egg {
 
     // If this is the 10th egg without unlocking something new, attempt to force it.
     if (scene.gameData.unlockPity[this.tier] >= 9) {
-      const lockedPool = speciesPool.filter(s => !scene.gameData.dexData[s].caughtAttr);
+      const lockedPool = speciesPool.filter(s => !scene.gameData.dexData[s].caughtAttr && !scene.gameData.eggs.some(e => e.species === s));
       if (lockedPool.length) { // Skip this if everything is unlocked
         speciesPool = lockedPool;
       }
@@ -416,7 +417,7 @@ export class Egg {
       }
     }
 
-    if (!!scene.gameData.dexData[species].caughtAttr) {
+    if (!!scene.gameData.dexData[species].caughtAttr || scene.gameData.eggs.some(e => e.species === species)) {
       scene.gameData.unlockPity[this.tier] = Math.min(scene.gameData.unlockPity[this.tier] + 1, 10);
     } else {
       scene.gameData.unlockPity[this.tier] = 0;
@@ -463,9 +464,10 @@ export class Egg {
   }
 
   private checkForPityTierOverrides(scene: BattleScene): void {
+    const tierValueOffset = this._sourceType === EggSourceType.GACHA_LEGENDARY ? 1 : 0;
     scene.gameData.eggPity[EggTier.GREAT] += 1;
     scene.gameData.eggPity[EggTier.ULTRA] += 1;
-    scene.gameData.eggPity[EggTier.MASTER] += 1 + this._sourceType === EggSourceType.GACHA_LEGENDARY ? 1 : 0;
+    scene.gameData.eggPity[EggTier.MASTER] += 1 + tierValueOffset;
     // These numbers are roughly the 80% mark. That is, 80% of the time you'll get an egg before this gets triggered.
     if (scene.gameData.eggPity[EggTier.MASTER] >= 412 && this._tier === EggTier.COMMON) {
       this._tier = EggTier.MASTER;
