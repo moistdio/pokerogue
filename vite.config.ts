@@ -31,6 +31,10 @@ export default defineConfig(({mode}) => {
 		},
 		server: {
 			port: !isNaN(envPort) ? envPort : 8000,
+		},
+		preview: {
+			port: !isNaN(envPort) ? envPort : 8000,
+			host: "0.0.0.0",
 		}
 	});
 });
