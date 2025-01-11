@@ -1,8 +1,8 @@
 import { PokemonFormChangeItemModifier, TerastallizeModifier } from "../modifier/modifier";
 import Pokemon from "../field/pokemon";
-import { StatusEffect } from "./status-effect";
+import { StatusEffect } from "#enums/status-effect";
 import { MoveCategory, allMoves } from "./move";
-import { Type } from "./type";
+import { Type } from "#enums/type";
 import { Constructor, nil } from "#app/utils";
 import { Abilities } from "#enums/abilities";
 import { Moves } from "#enums/moves";
@@ -10,7 +10,7 @@ import { Species } from "#enums/species";
 import { TimeOfDay } from "#enums/time-of-day";
 import { getPokemonNameWithAffix } from "#app/messages";
 import i18next from "i18next";
-import { WeatherType } from "./weather";
+import { WeatherType } from "#enums/weather-type";
 import { Challenges } from "#app/enums/challenges";
 import { SpeciesFormKey } from "#enums/species-form-key";
 
@@ -351,6 +351,10 @@ export class MeloettaFormChangePostMoveTrigger extends SpeciesFormChangePostMove
     if (pokemon.scene.gameMode.hasChallenge(Challenges.SINGLE_TYPE)) {
       return false;
     } else {
+      // Meloetta will not transform if it has the ability Sheer Force when using Relic Song
+      if (pokemon.hasAbility(Abilities.SHEER_FORCE)) {
+        return false;
+      }
       return super.canChange(pokemon);
     }
   }
@@ -766,8 +770,8 @@ export const pokemonFormChanges: PokemonFormChanges = {
     new SpeciesFormChange(Species.KYUREM, "", "white", new SpeciesFormChangeItemTrigger(FormChangeItem.LIGHT_STONE), false, getSpeciesDependentFormChangeCondition(Species.RESHIRAM))
   ],
   [Species.KELDEO]: [
-    new SpeciesFormChange(Species.KELDEO, "ordinary", "resolute", new SpeciesFormChangeMoveLearnedTrigger(Moves.SECRET_SWORD)),
-    new SpeciesFormChange(Species.KELDEO, "resolute", "ordinary", new SpeciesFormChangeMoveLearnedTrigger(Moves.SECRET_SWORD, false))
+    new SpeciesFormChange(Species.KELDEO, "ordinary", "resolute", new SpeciesFormChangeMoveLearnedTrigger(Moves.SECRET_SWORD), false, new SpeciesFormChangeCondition((p) => p.scene.gameMode.isDaily !== true)),
+    new SpeciesFormChange(Species.KELDEO, "resolute", "ordinary", new SpeciesFormChangeMoveLearnedTrigger(Moves.SECRET_SWORD, false), false, new SpeciesFormChangeCondition((p) => p.scene.gameMode.isDaily !== true))
   ],
   [Species.MELOETTA]: [
     new SpeciesFormChange(Species.MELOETTA, "aria", "pirouette", new MeloettaFormChangePostMoveTrigger(Moves.RELIC_SONG), true),
