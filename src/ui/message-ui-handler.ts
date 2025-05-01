@@ -34,44 +34,75 @@ export default abstract class MessageUiHandler extends AwaitableUiHandler {
     }
   }
 
-  showText(text: string, delay?: integer | null, callback?: Function | null, callbackDelay?: integer | null, prompt?: boolean | null, promptDelay?: integer | null) {
+  showText(
+    text: string,
+    delay?: number | null,
+    callback?: Function | null,
+    callbackDelay?: number | null,
+    prompt?: boolean | null,
+    promptDelay?: number | null,
+  ) {
     this.showTextInternal(text, delay, callback, callbackDelay, prompt, promptDelay);
   }
 
-  showDialogue(text: string, name?: string, delay?: integer | null, callback?: Function | null, callbackDelay?: integer | null, prompt?: boolean | null, promptDelay?: integer | null) {
+  showDialogue(
+    text: string,
+    _name?: string,
+    delay?: number | null,
+    callback?: Function | null,
+    callbackDelay?: number | null,
+    prompt?: boolean | null,
+    promptDelay?: number | null,
+  ) {
     this.showTextInternal(text, delay, callback, callbackDelay, prompt, promptDelay);
   }
 
-  private showTextInternal(text: string, delay?: integer | null, callback?: Function | null, callbackDelay?: integer | null, prompt?: boolean | null, promptDelay?: integer | null) {
+  private showTextInternal(
+    text: string,
+    delay?: number | null,
+    callback?: Function | null,
+    callbackDelay?: number | null,
+    prompt?: boolean | null,
+    promptDelay?: number | null,
+  ) {
     if (delay === null || delay === undefined) {
       delay = 20;
     }
 
     // Pattern matching regex that checks for @c{}, @f{}, @s{}, and @f{} patterns within message text and parses them to their respective behaviors.
-    const charVarMap = new Map<integer, string>();
-    const delayMap = new Map<integer, integer>();
-    const soundMap = new Map<integer, string>();
-    const fadeMap = new Map<integer, integer>();
+    const charVarMap = new Map<number, string>();
+    const delayMap = new Map<number, number>();
+    const soundMap = new Map<number, string>();
+    const fadeMap = new Map<number, number>();
     const actionPattern = /@(c|d|s|f)\{(.*?)\}/;
     let actionMatch: RegExpExecArray | null;
+    const pokename: string[] = [];
+    const repname = ["#POKEMON1", "#POKEMON2"];
+    for (let p = 0; p < globalScene.getPlayerField().length; p++) {
+      pokename.push(globalScene.getPlayerField()[p].getNameToRender());
+      text = text.split(pokename[p]).join(repname[p]);
+    }
     while ((actionMatch = actionPattern.exec(text))) {
       switch (actionMatch[1]) {
         case "c":
           charVarMap.set(actionMatch.index, actionMatch[2]);
           break;
         case "d":
-          delayMap.set(actionMatch.index, parseInt(actionMatch[2]));
+          delayMap.set(actionMatch.index, Number.parseInt(actionMatch[2]));
           break;
         case "s":
           soundMap.set(actionMatch.index, actionMatch[2]);
           break;
         case "f":
-          fadeMap.set(actionMatch.index, parseInt(actionMatch[2]));
+          fadeMap.set(actionMatch.index, Number.parseInt(actionMatch[2]));
           break;
       }
       text = text.slice(0, actionMatch.index) + text.slice(actionMatch.index + actionMatch[2].length + 4);
     }
 
+    for (let p = 0; p < globalScene.getPlayerField().length; p++) {
+      text = text.split(repname[p]).join(pokename[p]);
+    }
     if (text) {
       // Predetermine overflow line breaks to avoid words breaking while displaying
       const textWords = text.split(" ");
@@ -122,7 +153,7 @@ export default abstract class MessageUiHandler extends AwaitableUiHandler {
       this.textTimer = globalScene.time.addEvent({
         delay: delay,
         callback: () => {
-          const charIndex = text.length - (this.textTimer?.repeatCount!); // TODO: is this bang correct?
+          const charIndex = text.length - this.textTimer?.repeatCount!; // TODO: is this bang correct?
           const charVar = charVarMap.get(charIndex);
           const charSound = soundMap.get(charIndex);
           const charDelay = delayMap.get(charIndex);
@@ -156,7 +187,7 @@ export default abstract class MessageUiHandler extends AwaitableUiHandler {
               onComplete: () => {
                 this.textTimer!.paused = false; // TODO: is the bang correct?
                 advance();
-              }
+              },
             });
           } else if (charFade) {
             this.textTimer!.paused = true;
@@ -175,7 +206,7 @@ export default abstract class MessageUiHandler extends AwaitableUiHandler {
             advance();
           }
         },
-        repeat: text.length
+        repeat: text.length,
       });
     } else {
       this.message.setText(text);
@@ -188,11 +219,13 @@ export default abstract class MessageUiHandler extends AwaitableUiHandler {
     }
   }
 
-  showPrompt(callback?: Function | null, callbackDelay?: integer | null) {
+  showPrompt(callback?: Function | null, callbackDelay?: number | null) {
     const wrappedTextLines = this.message.runWordWrap(this.message.text).split(/\n/g);
     const textLinesCount = wrappedTextLines.length;
     const lastTextLine = wrappedTextLines[wrappedTextLines.length - 1];
-    const lastLineTest = globalScene.add.text(0, 0, lastTextLine, { font: "96px emerald" });
+    const lastLineTest = globalScene.add.text(0, 0, lastTextLine, {
+      font: "96px emerald",
+    });
     lastLineTest.setScale(this.message.scale);
     const lastLineWidth = lastLineTest.displayWidth;
     lastLineTest.destroy();
